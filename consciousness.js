@@ -1,67 +1,36 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
 import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js';
-
 const host=document.querySelector('#scene');
-const scene=new THREE.Scene();
-scene.fog=new THREE.FogExp2(0x02070d,.045);
-const camera=new THREE.PerspectiveCamera(48,host.clientWidth/host.clientHeight,.1,100);
-camera.position.set(0,1.2,15);
-const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(host.clientWidth,host.clientHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;host.appendChild(renderer.domElement);
-const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.07;controls.minDistance=7;controls.maxDistance=24;controls.target.set(0,0,0);
-
+const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x01060b,.038);
+const camera=new THREE.PerspectiveCamera(47,host.clientWidth/host.clientHeight,.1,120);camera.position.set(0,1,18);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(host.clientWidth,host.clientHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;host.appendChild(renderer.domElement);
+const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.075;controls.minDistance=7;controls.maxDistance=34;controls.target.set(0,0,0);
 const defs=[
- {name:'PERCEPTION',sub:'WORLD INPUT',x:-5.2,n:12,c:0x4ddfff},
- {name:'FEATURES',sub:'PATTERNS',x:-2.8,n:16,c:0x58a9ff},
- {name:'MEMORY',sub:'PAST EXPERIENCE',x:-.5,n:18,c:0x9b73ff},
- {name:'REASONING',sub:'CONTEXT',x:1.8,n:20,c:0xe96cff},
- {name:'GOAL',sub:'INTENT',x:4.1,n:14,c:0xff78b7},
- {name:'ACTION',sub:'OUTPUT',x:6.1,n:10,c:0xffcf55}
-];
-const root=new THREE.Group();scene.add(root);const layers=[];const nodes=[];const links=[];const packets=[];
-function node(pos,color,r=.085,li=0,ni=0){const m=new THREE.Mesh(new THREE.SphereGeometry(r,12,12),new THREE.MeshBasicMaterial({color}));m.position.copy(pos);m.userData={li,ni,color,base:r,activation:0};root.add(m);nodes.push(m);return m}
-for(let li=0;li<defs.length;li++){
- const d=defs[li], arr=[];
- for(let i=0;i<d.n;i++){
-  const y=(i/(d.n-1)-.5)*5.6;
-  const z=Math.sin(i*1.65+li*.8)*1.35+(Math.random()-.5)*.45;
-  arr.push(node(new THREE.Vector3(d.x+(Math.random()-.5)*.18,y,z),d.c,li===3?.1:.08,li,i));
- }
- layers.push(arr);
-}
-function connect(a,b,color){const g=new THREE.BufferGeometry().setFromPoints([a.position,b.position]);const m=new THREE.LineBasicMaterial({color,transparent:true,opacity:.13});const l=new THREE.Line(g,m);root.add(l);links.push({l,a,b});}
-for(let li=0;li<layers.length-1;li++)for(const a of layers[li]){const candidates=[...layers[li+1]].sort(()=>Math.random()-.5).slice(0,4);for(const b of candidates)connect(a,b,defs[li+1].c)}
-
-// subtle layer planes, inspired by educational 3D neural-network visualizers
-for(const d of defs){const g=new THREE.PlaneGeometry(.015,6.6);const m=new THREE.MeshBasicMaterial({color:d.c,transparent:true,opacity:.025,side:THREE.DoubleSide});const p=new THREE.Mesh(g,m);p.position.x=d.x;p.rotation.y=Math.PI/2;root.add(p)}
-const core=new THREE.Mesh(new THREE.IcosahedronGeometry(1.05,2),new THREE.MeshBasicMaterial({color:0x6beaff,wireframe:true,transparent:true,opacity:.12}));root.add(core);
-for(let i=0;i<3;i++){const r=new THREE.Mesh(new THREE.TorusGeometry(1.7+i*.38,.009,8,96),new THREE.MeshBasicMaterial({color:0x4ddfff,transparent:true,opacity:.25}));r.rotation.x=Math.PI/2;r.userData.speed=.0025+i*.001;root.add(r)}
-const starsG=new THREE.BufferGeometry(),sp=[];for(let i=0;i<500;i++)sp.push((Math.random()-.5)*32,(Math.random()-.5)*18,(Math.random()-.5)*20-3);starsG.setAttribute('position',new THREE.Float32BufferAttribute(sp,3));scene.add(new THREE.Points(starsG,new THREE.PointsMaterial({color:0x5bbcff,size:.016,transparent:true,opacity:.55})));
-
-const light=new THREE.PointLight(0x39d9ff,8,14);light.position.set(0,0,4);scene.add(light);
+{name:'PERCEPTION',sub:'WORLD INPUT',x:-8,n:14,c:0x43ddff},{name:'FEATURES',sub:'PATTERN EXTRACTION',x:-5.8,n:18,c:0x4aa8ff},{name:'MEMORY',sub:'PAST EXPERIENCE',x:-3.5,n:20,c:0x9b6dff},{name:'SELF MODEL',sub:'INTERNAL STATE',x:-1.1,n:18,c:0xc56cff},{name:'REASONING',sub:'CONTEXT INTEGRATION',x:1.3,n:22,c:0xe86aff},{name:'GOAL',sub:'INTENT GENERATION',x:3.7,n:16,c:0xff70b2},{name:'DECISION',sub:'ACTION SELECTION',x:5.9,n:14,c:0xff9d55},{name:'ACTION',sub:'WORLD OUTPUT',x:8,n:10,c:0xffd255}];
+const root=new THREE.Group();scene.add(root);const layers=[],nodes=[],links=[],packets=[];
+function makeNode(pos,color,r,li,ni){const m=new THREE.Mesh(new THREE.SphereGeometry(r,14,14),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.9}));m.position.copy(pos);m.userData={li,ni,color,base:r,activation:0};root.add(m);nodes.push(m);return m}
+for(let li=0;li<defs.length;li++){const d=defs[li],arr=[];for(let i=0;i<d.n;i++){const y=(i/(d.n-1)-.5)*6.2,z=Math.sin(i*1.47+li*.83)*1.55+(Math.random()-.5)*.65;arr.push(makeNode(new THREE.Vector3(d.x+(Math.random()-.5)*.2,y,z),d.c,li===4?.105:.078,li,i))}layers.push(arr)}
+function connect(a,b,color,opacity=.11){const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([a.position,b.position]),new THREE.LineBasicMaterial({color,transparent:true,opacity}));root.add(line);links.push({line,a,b,base:opacity,energy:0})}
+for(let li=0;li<layers.length-1;li++)for(const a of layers[li]){[...layers[li+1]].sort(()=>Math.random()-.5).slice(0,5).forEach(b=>connect(a,b,defs[li+1].c,.105))}
+for(const a of layers[7].slice(0,6))for(const b of [...layers[2],...layers[3]].sort(()=>Math.random()-.5).slice(0,2))connect(a,b,0x48e5ff,.08);
+for(const d of defs){const p=new THREE.Mesh(new THREE.PlaneGeometry(.018,7.4),new THREE.MeshBasicMaterial({color:d.c,transparent:true,opacity:.018,side:THREE.DoubleSide}));p.position.x=d.x;p.rotation.y=Math.PI/2;root.add(p)}
+const core=new THREE.Mesh(new THREE.IcosahedronGeometry(1.15,2),new THREE.MeshBasicMaterial({color:0x66eaff,wireframe:true,transparent:true,opacity:.14}));root.add(core);const glow=new THREE.Mesh(new THREE.SphereGeometry(.72,24,24),new THREE.MeshBasicMaterial({color:0x48ddff,transparent:true,opacity:.045}));root.add(glow);
+for(let i=0;i<5;i++){const r=new THREE.Mesh(new THREE.TorusGeometry(1.55+i*.32,.008,8,100),new THREE.MeshBasicMaterial({color:i%2?0xb56cff:0x48ddff,transparent:true,opacity:.2}));r.rotation.set(Math.random()*2,Math.random()*2,Math.random()*2);r.userData.speed=.0015+i*.0007;root.add(r)}
+const sg=new THREE.BufferGeometry(),sv=[];for(let i=0;i<900;i++)sv.push((Math.random()-.5)*38,(Math.random()-.5)*20,(Math.random()-.5)*25-3);sg.setAttribute('position',new THREE.Float32BufferAttribute(sv,3));scene.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0x5bbcff,size:.012,transparent:true,opacity:.45})));
+const light=new THREE.PointLight(0x39d9ff,8,18);light.position.set(0,0,4);scene.add(light);
 const ray=new THREE.Raycaster(),mouse=new THREE.Vector2();let selected=null;
-renderer.domElement.addEventListener('pointerdown',e=>{const r=renderer.domElement.getBoundingClientRect();mouse.x=((e.clientX-r.left)/r.width)*2-1;mouse.y=-((e.clientY-r.top)/r.height)*2+1;ray.setFromCamera(mouse,camera);const hit=ray.intersectObjects(nodes)[0];if(hit){selected=hit.object;showSelection(selected)}});
-function showSelection(n){document.querySelector('#activeLayer').textContent=defs[n.userData.li].name;document.querySelector('#activation').textContent=`${Math.round(45+n.userData.activation*55)}%`;document.querySelector('#signal').textContent=`Neuron ${n.userData.ni+1} in ${defs[n.userData.li].name} activated; downstream connections are being evaluated.`}
-
-const processes=[
- ['OBSERVING','Scanning Moon environment for relevant signals…',0],
- ['ENCODING','Converting sensory input into feature activations…',1],
- ['RECALLING','Matching current state against stored experience…',2],
- ['REASONING','Combining context and active representations…',3],
- ['GOAL FORMING','Selecting the next objective from current state…',4],
- ['ACTING','Propagating a decision toward the action layer…',5],
- ['FEEDBACK','Comparing outcome with expected result…',3],
- ['LEARNING','Updating internal representations from feedback…',2]
-];
-let pi=0,paused=false,cycle=0;const processEl=document.querySelector('#process'),signalEl=document.querySelector('#signal'),meter=document.querySelector('#meter');
-function activateLayer(li){nodes.forEach(n=>{n.userData.activation=0});for(let k=0;k<layers[li].length;k++)if(Math.random()<.68)layers[li][k].userData.activation=.5+Math.random()*.5;}
-function setProcess(){const p=processes[pi];processEl.textContent=p[0];signalEl.textContent=p[1];document.querySelector('#activeLayer').textContent=defs[p[2]].name;activateLayer(p[2]);meter.style.width=`${45+Math.round(Math.random()*50)}%`;document.querySelector('#world').textContent=`${40+Math.round(Math.random()*45)}%`;document.querySelector('#memory').textContent=`${30+Math.round(Math.random()*55)}%`;document.querySelector('#self').textContent=`${25+Math.round(Math.random()*55)}%`;document.querySelector('#goal').textContent=`${20+Math.round(Math.random()*65)}%`;pi=(pi+1)%processes.length}
-setProcess();setInterval(()=>{if(!paused)setProcess()},1100);
-
-defs.forEach((d,i)=>{const card=document.createElement('div');card.className='layerCol';card.innerHTML=`<div class="layerName">${d.name}</div><div class="layerSub">${d.sub}</div><div class="miniNet"></div>`;const mh=card.querySelector('.miniNet');for(let k=0;k<Math.min(11,d.n);k++){const s=document.createElement('i');s.className='miniNode';s.style.left=`${18+Math.random()*64}%`;s.style.top=`${5+Math.random()*88}%`;mh.appendChild(s)}document.querySelector('#layerMap').appendChild(card)});
-const stream=document.querySelector('#stream');function addEvent(text){const e=document.createElement('div');e.className='event';e.innerHTML=`<b>${new Date().toLocaleTimeString()}</b> · ${text}`;stream.prepend(e);while(stream.children.length>6)stream.lastChild.remove()}['Input received','Feature map updated','Memory representation recalled','Context integrated','Goal candidate generated','Action signal emitted'].forEach(addEvent);setInterval(()=>{if(!paused)addEvent(processes[pi][0].toLowerCase()+' stage active')},1500);
-
-document.querySelector('#pause').onclick=()=>{paused=!paused;document.querySelector('#pause').textContent=paused?'RESUME':'PAUSE'};document.querySelector('#reset').onclick=()=>{pi=0;cycle=0;setProcess();stream.innerHTML='';addEvent('Neural activity reset')};
-
-const clock=new THREE.Clock();function animate(){requestAnimationFrame(animate);const t=clock.getElapsedTime();controls.update();root.rotation.y=Math.sin(t*.12)*.035;core.rotation.x=t*.16;core.rotation.y=-t*.22;root.children.forEach(o=>{if(o.userData.speed)o.rotation.z+=o.userData.speed});nodes.forEach((n,i)=>{const a=n.userData.activation||0;const pulse=1+Math.sin(t*5+n.userData.ni)*(.14+.28*a);n.scale.setScalar(pulse);n.material.color.setHex(a>.72?0xffffff:n.userData.color);});for(let i=0;i<3;i++)if(!paused&&Math.random()<.16){const li=cycle% (layers.length-1);const a=layers[li][Math.floor(Math.random()*layers[li].length)],b=layers[li+1][Math.floor(Math.random()*layers[li+1].length)];const q=new THREE.Mesh(new THREE.SphereGeometry(.11,8,8),new THREE.MeshBasicMaterial({color:defs[li+1].c}));root.add(q);packets.push({q,a,b,t:0});cycle++}packets.forEach((p,i)=>{p.t+=.018;p.q.position.lerpVectors(p.a.position,p.b.position,p.t);if(p.t>=1){root.remove(p.q);p.q.material.dispose();p.q.geometry.dispose();packets.splice(i,1)}});document.querySelector('#neurons').textContent=nodes.length.toLocaleString();light.intensity=7+Math.sin(t*3)*2;renderer.render(scene,camera)}animate();
+renderer.domElement.addEventListener('pointerdown',e=>{const r=renderer.domElement.getBoundingClientRect();mouse.x=(e.clientX-r.left)/r.width*2-1;mouse.y=-(e.clientY-r.top)/r.height*2+1;ray.setFromCamera(mouse,camera);const hit=ray.intersectObjects(nodes)[0];if(hit)selectNode(hit.object)});
+function selectNode(n){if(selected)selected.scale.setScalar(1);selected=n;selected.scale.setScalar(2.4);document.querySelector('#selectedName').textContent=`${defs[n.userData.li].name} · N${n.userData.ni+1}`;document.querySelector('#selectedInfo').textContent=`Activation ${Math.round(45+n.userData.activation*55)}% · ${links.filter(x=>x.a===n||x.b===n).length} connected pathways · live signal state.`;document.querySelector('#activeLayer').textContent=defs[n.userData.li].name}
+const processes=[['OBSERVING','Scanning the Moon world for relevant signals…',0],['ENCODING','Transforming sensory input into feature activity…',1],['RECALLING','Searching learned representations and past states…',2],['SELF EVALUATION','Comparing current state with internal capabilities…',3],['REASONING','Integrating context across active representations…',4],['GOAL FORMING','Generating a candidate objective from current state…',5],['DECISION','Evaluating possible actions against the active goal…',6],['ACTING','Propagating selected action toward the world…',7],['FEEDBACK','Comparing observed outcome with expected result…',6],['LEARNING','Updating memory and internal representations…',2]];
+let pi=0,paused=false,cycle=1,last=performance.now();const processEl=document.querySelector('#process');
+function setProcess(){const p=processes[pi];processEl.textContent=p[0];document.querySelector('#signal').textContent=p[1];document.querySelector('#activeLayer').textContent=defs[p[2]].name;document.querySelector('#meter').style.width=`${42+Math.round(Math.random()*55)}%`;['world','memory','self','goal','uncertainty'].forEach(id=>{const v=Math.round(20+Math.random()*72);document.querySelector('#'+id).textContent=v+'%';document.querySelector('#'+id).nextElementSibling.style.setProperty('--v',v+'%')});activateLayer(p[2]);if(pi===0){cycle++;document.querySelector('#cycle').textContent=`CYCLE ${String(cycle).padStart(2,'0')}`}}
+function activateLayer(li){nodes.forEach(n=>n.userData.activation*=.25);layers[li].forEach(n=>n.userData.activation=.55+Math.random()*.45);if(li>0)layers[li-1].forEach(n=>n.userData.activation=Math.max(n.userData.activation,.18+Math.random()*.55));links.forEach(l=>l.energy=(l.a.userData.activation||0)*.8+(l.b.userData.activation||0)*.2)}
+setProcess();setInterval(()=>{if(!paused){pi=(pi+1)%processes.length;setProcess()}},950);
+const stream=document.querySelector('#stream'),telemetry=document.querySelector('#telemetry');function log(text){const e=document.createElement('div');e.className='event';e.innerHTML=`<b>${new Date().toLocaleTimeString()}</b>${text}`;stream.prepend(e);while(stream.children.length>5)stream.lastChild.remove();const t=document.createElement('div');t.innerHTML=`<b>${new Date().toLocaleTimeString()}</b> · ${text}`;telemetry.prepend(t);while(telemetry.children.length>6)telemetry.lastChild.remove()}
+['Input received','Feature representation formed','Memory state recalled','Self model evaluated','Context integrated','Goal candidate generated','Action pathway selected'].forEach(log);setInterval(()=>{if(!paused)log(processes[pi][0]+' stage active')},1200);
+const loopEl=document.querySelector('#loop');['OBSERVE','INTERPRET','RECALL','REASON','GOAL','ACT','FEEDBACK','LEARN'].forEach((x,i)=>{if(i){const a=document.createElement('em');a.textContent='→';loopEl.appendChild(a)}const s=document.createElement('span');s.textContent=x;loopEl.appendChild(s)});
+document.querySelector('#pause').onclick=()=>{paused=!paused;document.querySelector('#pause').textContent=paused?'RESUME':'PAUSE'};document.querySelector('#reset').onclick=()=>{pi=0;cycle=0;nodes.forEach(n=>n.userData.activation=0);setProcess();stream.innerHTML='';telemetry.innerHTML='';log('Neural field reset')};document.querySelector('#focus').onclick=()=>{camera.position.set(0,1,13);controls.target.set(0,0,0);controls.update()};
+function spawnPacket(){const active=links.filter(l=>l.energy>.22);if(!active.length)return;const l=active[Math.floor(Math.random()*active.length)],q=new THREE.Mesh(new THREE.SphereGeometry(.105,10,10),new THREE.MeshBasicMaterial({color:0xffffff}));root.add(q);packets.push({q,l,t:0});l.energy=Math.min(1,l.energy+.35)}
+const clock=new THREE.Clock();let packetClock=0;
+function animate(now=performance.now()){requestAnimationFrame(animate);const dt=Math.min(.05,(now-last)/1000);last=now;if(!paused){packetClock+=dt;if(packetClock>.11){spawnPacket();packetClock=0}}controls.update();const t=clock.getElapsedTime();root.rotation.y=Math.sin(t*.09)*.028;core.rotation.x=t*.15;core.rotation.y=-t*.2;glow.scale.setScalar(1+Math.sin(t*2.4)*.08);root.children.forEach(o=>{if(o.userData.speed)o.rotation.z+=o.userData.speed*(paused?.15:1)});nodes.forEach(n=>{const a=n.userData.activation||0,pulse=1+Math.sin(t*5+n.userData.ni*.7)*(.08+.22*a);n.scale.setScalar(n===selected?2.4:pulse*(1+a*.8));n.material.opacity=.45+.5*a;n.material.color.setHex(a>.82?0xffffff:n.userData.color)});links.forEach(l=>{l.energy*=.985;l.line.material.opacity=l.base+Math.min(.45,l.energy*.45);l.line.material.color.setHex(l.energy>.7?0xffffff:(defs[l.b.userData.li]?.c||0x48dfff))});for(let i=packets.length-1;i>=0;i--){const p=packets[i];p.t+=dt*1.7;p.q.position.lerpVectors(p.l.a.position,p.l.b.position,p.t);if(p.t>=1){root.remove(p.q);p.q.geometry.dispose();p.q.material.dispose();packets.splice(i,1)}}document.querySelector('#neurons').textContent=nodes.length.toLocaleString();document.querySelector('#activation').textContent=Math.round(48+Math.sin(t*1.8)*18+Math.random()*10)+'%';document.querySelector('#fps').textContent=`${Math.round(1/Math.max(dt,.001))} FPS`;light.intensity=7+Math.sin(t*2.7)*2;renderer.render(scene,camera)}animate();
 function resize(){const w=host.clientWidth,h=host.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h)}addEventListener('resize',resize);

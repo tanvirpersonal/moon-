@@ -1,72 +1,13 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Moonflight — build, launch and land your own rocket on the Moon." />
-  <title>Moonflight — Rocket Builder</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <div id="app">
-    <header class="topbar">
-      <div class="brand"><span class="brand-mark">◐</span><div><b>MOONFLIGHT</b><small>ROCKET LAB</small></div></div>
-      <nav><button class="nav-btn active" data-screen="build">BUILD</button><button class="nav-btn" data-screen="launch">LAUNCH</button></nav>
-      <div class="top-stats"><span>MISSION <b id="missionName">LUNA-01</b></span><span>FUNDS <b>∞</b></span></div>
-    </header>
-
-    <main>
-      <section id="buildScreen" class="screen active">
-        <aside class="panel parts-panel">
-          <div class="panel-title">ROCKET PARTS <span>CLICK TO ADD</span></div>
-          <div id="partsList" class="parts-list"></div>
-          <div class="hint">Parts attach vertically. Select a part to place it on the rocket.</div>
-        </aside>
-
-        <section class="viewport-wrap">
-          <div id="builderViewport" class="viewport"></div>
-          <div class="viewport-label"><span class="live-dot"></span> ASSEMBLY BAY <b id="buildStatus">READY</b></div>
-          <div class="controls"><span>🖱 Drag · Rotate</span><span>Wheel · Zoom</span><span>R · Reset</span></div>
-        </section>
-
-        <aside class="panel info-panel">
-          <div class="panel-title">VEHICLE <span>LUNA-01</span></div>
-          <div class="vehicle-name">LUNA-01 <small>EXPLORER</small></div>
-          <div class="stat"><span>Mass</span><b id="massStat">0.0 t</b></div>
-          <div class="stat"><span>Fuel</span><b id="fuelStat">0 kg</b></div>
-          <div class="stat"><span>Thrust</span><b id="thrustStat">0 kN</b></div>
-          <div class="stat"><span>TWR</span><b id="twrStat">0.00</b></div>
-          <div class="divider"></div>
-          <button id="clearBtn" class="secondary">CLEAR ROCKET</button>
-          <button id="launchBtn" class="primary">🚀 LAUNCH</button>
-          <div class="tip"><b>MISSION:</b> Build a rocket, reach the Moon and land safely. This prototype uses simplified orbital physics.</div>
-        </aside>
-      </section>
-
-      <section id="launchScreen" class="screen launch-screen">
-        <div id="flightViewport" class="viewport flight"></div>
-        <div class="flight-hud">
-          <div class="hud-card"><small>ALTITUDE</small><b id="altitude">0 m</b></div>
-          <div class="hud-card"><small>VELOCITY</small><b id="velocity">0 m/s</b></div>
-          <div class="hud-card"><small>FUEL</small><b id="flightFuel">0 kg</b></div>
-          <div class="hud-card"><small>MISSION TIME</small><b id="missionTime">T+ 00:00</b></div>
-        </div>
-        <div class="flight-controls">
-          <div class="stage-label">STAGE <b id="stageNumber">01</b></div>
-          <div class="throttle"><label>THROTTLE <b id="throttleValue">100%</b></label><input id="throttle" type="range" min="0" max="100" value="100" /></div>
-          <button id="cameraBtn" class="secondary camera-mode">CAM: CHASE</button>
-          <button id="stageBtn" class="primary stage">STAGE</button>
-          <button id="abortBtn" class="secondary">ABORT</button>
-        </div>
-        <div class="flight-hints">STEER: W/S PITCH · A/D YAW · Q/E ROLL · SPACE STAGE</div>
-        <div id="flightMessage" class="flight-message">IGNITION — 3… 2… 1…</div>
-      </section>
-    </main>
-  </div>
-
-  <script type="importmap">
-  {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.181.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.181.1/examples/jsm/"}}
-  </script>
-  <script type="module" src="main.js"></script>
-</body>
-</html>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Moonflight — build, launch and land your own rocket on the Moon."><title>Moonflight — Rocket Builder</title><link rel="stylesheet" href="style.css">
+</head><body><div id="app">
+<header class="topbar"><div class="brand"><span class="brand-mark">◐</span><div><b>MOONFLIGHT</b><small>ROCKET LAB</small></div></div><nav><button class="nav-btn active" data-screen="build">BUILD</button><button class="nav-btn" data-screen="launch">LAUNCH</button></nav><div class="top-stats"><span>MISSION <b id="missionName">LUNA-01</b></span><span>FUNDS <b>∞</b></span></div></header>
+<main><section id="buildScreen" class="screen active">
+<aside class="panel parts-panel"><div class="panel-title">ROCKET PARTS <span>DRAG / CLICK</span></div><div class="part-tabs"><button class="part-tab active" data-filter="all">ALL</button><button class="part-tab" data-filter="propulsion">ENGINE</button><button class="part-tab" data-filter="structure">STRUCTURE</button></div><div id="partsList" class="parts-list"></div><div class="hint">Click a part to add it. Drag parts to reorder. Select a part in the rocket to edit it.</div></aside>
+<section class="viewport-wrap"><div id="builderViewport" class="viewport"></div><div class="viewport-label"><span class="live-dot"></span> ASSEMBLY BAY <b id="buildStatus">READY</b></div><div class="build-toolbar"><button id="undoBtn">↶</button><button id="redoBtn">↷</button><button id="symmetryBtn">◇ SYMMETRY</button><button id="saveBtn">SAVE</button><button id="loadBtn">LOAD</button></div><div class="controls"><span>🖱 Drag · Rotate</span><span>Wheel · Zoom</span><span>R · Reset</span></div></section>
+<aside class="panel info-panel"><div class="panel-title">VEHICLE <span>LUNA-01</span></div><div class="vehicle-name">LUNA-01 <small>EXPLORER</small></div><div class="stat"><span>Mass</span><b id="massStat">0.0 t</b></div><div class="stat"><span>Fuel</span><b id="fuelStat">0 kg</b></div><div class="stat"><span>Thrust</span><b id="thrustStat">0 kN</b></div><div class="stat"><span>TWR</span><b id="twrStat">0.00</b></div><div class="stat"><span>ΔV</span><b id="dvStat">0 m/s</b></div><div class="stat"><span>Stages</span><b id="stageStat">0</b></div><div class="divider"></div><div class="selected-part"><small>SELECTED PART</small><b id="selectedPart">NONE</b><div class="selected-actions"><button id="rotatePartBtn">ROTATE</button><button id="deletePartBtn">DELETE</button></div></div><button id="clearBtn" class="secondary">CLEAR ROCKET</button><button id="launchBtn" class="primary">🚀 LAUNCH</button><div class="tip"><b>MISSION:</b> Build, stage and fly. Save your craft locally before launch.</div></aside>
+</section>
+<section id="launchScreen" class="screen launch-screen"><div id="flightViewport" class="viewport flight"></div><div class="flight-hud"><div class="hud-card"><small>ALTITUDE</small><b id="altitude">0 m</b></div><div class="hud-card"><small>VELOCITY</small><b id="velocity">0 m/s</b></div><div class="hud-card"><small>FUEL</small><b id="flightFuel">0 kg</b></div><div class="hud-card"><small>APOAPSIS</small><b id="apoapsis">—</b></div><div class="hud-card"><small>MISSION TIME</small><b id="missionTime">T+ 00:00</b></div></div><div class="flight-controls"><div class="stage-label">STAGE <b id="stageNumber">01</b></div><div class="throttle"><label>THROTTLE <b id="throttleValue">100%</b></label><input id="throttle" type="range" min="0" max="100" value="100"></div><button id="cameraBtn" class="secondary camera-mode">CAM: CHASE</button><button id="mapBtn" class="secondary camera-mode">MAP</button><button id="stageBtn" class="primary stage">STAGE</button><button id="abortBtn" class="secondary">ABORT</button></div><div class="flight-hints">STEER: W/S PITCH · A/D YAW · Q/E ROLL · SPACE STAGE</div><div id="flightMessage" class="flight-message">IGNITION — 3… 2… 1…</div></section></main></div>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.181.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.181.1/examples/jsm/"}}</script><script type="module" src="main.js"></script></body></html>

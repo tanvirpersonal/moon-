@@ -1,41 +1,59 @@
 import * as THREE from 'three';
 
-// Rocket part catalog — edit names, stats, icons, and colors here.
 export const PARTS = {
-  capsule: { name: 'Command Capsule', desc: 'Crew module', icon: '◉', mass: 1.8, fuel: 0, thrust: 0, color: 0xdce5ee, type: 'capsule' },
-  nose: { name: 'Nose Cone', desc: 'Aerodynamic tip', icon: '△', mass: .35, fuel: 0, thrust: 0, color: 0xb8c4d0, type: 'nose' },
-  tank: { name: 'Fuel Tank', desc: 'Liquid fuel', icon: '▥', mass: 1.2, fuel: 900, thrust: 0, color: 0xb6bec7, type: 'tank' },
-  engine: { name: 'Lunar Engine', desc: 'High thrust', icon: '🔥', mass: 1.1, fuel: 0, thrust: 120, color: 0x697887, type: 'engine' },
-  booster: { name: 'Solid Booster', desc: 'Auxiliary thrust', icon: '◆', mass: 1.5, fuel: 650, thrust: 80, color: 0x8f979e, type: 'booster' },
-  fins: { name: 'Stabilizer Fins', desc: 'Flight control', icon: '◢', mass: .25, fuel: 0, thrust: 0, color: 0x465463, type: 'fins' },
-  separator: { name: 'Decoupler', desc: 'Stage separator', icon: '⊙', mass: .18, fuel: 0, thrust: 0, color: 0xd08b38, type: 'separator' }
+  capsule:{name:'Command Capsule',desc:'Crew module',icon:'◉',mass:1.8,fuel:0,thrust:0,color:0xdce5ee,type:'capsule'},
+  nose:{name:'Nose Cone',desc:'Aerodynamic tip',icon:'△',mass:.35,fuel:0,thrust:0,color:0xb8c4d0,type:'nose'},
+  tank:{name:'Fuel Tank',desc:'Liquid fuel',icon:'▥',mass:1.2,fuel:900,thrust:0,color:0xb6bec7,type:'tank'},
+  engine:{name:'Lunar Engine',desc:'High thrust',icon:'🔥',mass:1.1,fuel:0,thrust:120,color:0x697887,type:'engine'},
+  booster:{name:'Solid Booster',desc:'Auxiliary thrust',icon:'◆',mass:1.5,fuel:650,thrust:80,color:0x8f979e,type:'booster'},
+  fins:{name:'Stabilizer Fins',desc:'Flight control',icon:'◢',mass:.25,fuel:0,thrust:0,color:0x465463,type:'fins'},
+  separator:{name:'Decoupler',desc:'Stage separator',icon:'⊙',mass:.18,fuel:0,thrust:0,color:0xd08b38,type:'separator'}
 };
 
-let hullCanvas;
-const texCache = new Map();
-function getHullCanvas(){if(hullCanvas)return hullCanvas;const c=document.createElement('canvas');c.width=c.height=512;const g=c.getContext('2d');g.fillStyle='#eef1f3';g.fillRect(0,0,512,512);const img=g.getImageData(0,0,512,512);for(let i=0;i<img.data.length;i+=4){const n=(Math.random()-.5)*26;img.data[i]+=n;img.data[i+1]+=n;img.data[i+2]+=n}g.putImageData(img,0,0);g.strokeStyle='rgba(35,45,55,.6)';g.lineWidth=2;for(const y of [1,257]){g.beginPath();g.moveTo(0,y);g.lineTo(512,y);g.stroke()}for(const x of [1,129,257,385]){g.beginPath();g.moveTo(x,0);g.lineTo(x,512);g.stroke()}g.fillStyle='rgba(25,35,45,.55)';for(const y of [9,265])for(let x=8;x<512;x+=16){g.beginPath();g.arc(x,y,1.4,0,7);g.fill()}hullCanvas=c;return c}
-function hullTexture(rx,ry){const key=rx+'x'+ry;if(!texCache.has(key)){const t=new THREE.CanvasTexture(getHullCanvas());t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;texCache.set(key,t)}return texCache.get(key)}
-function hullMaterial(color,rx=4,ry=2,metalness=.35,roughness=.42){const t=hullTexture(rx,ry);return new THREE.MeshStandardMaterial({color,map:t,bumpMap:t,bumpScale:.7,metalness,roughness})}
-function material(color,metalness=.45,roughness=.38){return new THREE.MeshStandardMaterial({color,metalness,roughness})}
-function labelTexture(text){if(texCache.has('label'+text))return texCache.get('label'+text);const c=document.createElement('canvas');c.width=512;c.height=256;const g=c.getContext('2d');g.fillStyle='#1b232b';g.font='bold 84px Arial';g.textAlign='center';g.fillText(text,256,120);g.font='bold 28px Arial';g.fillText('LIQUID FUEL  •  HANDLE WITH CARE',256,165);g.fillStyle='#d08b38';for(let x=-40;x<560;x+=48){g.beginPath();g.moveTo(x,205);g.lineTo(x+28,205);g.lineTo(x+8,245);g.lineTo(x-20,245);g.fill()}const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;texCache.set('label'+text,t);return t}
-const lathe=(pts,mat,seg=48)=>new THREE.Mesh(new THREE.LatheGeometry(pts.map(([r,y])=>new THREE.Vector2(r,y)),seg),mat);
-const cyl=(rt,rb,h,y,mat,seg=32)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg),mat);m.position.y=y;return m};
-const ring=(r,tube,y,mat,seg=48)=>{const m=new THREE.Mesh(new THREE.TorusGeometry(r,tube,10,seg),mat);m.rotation.x=Math.PI/2;m.position.y=y;return m};
-function ogivePoints(R,y0,h,steps=28){const pts=[];for(let i=0;i<=steps;i++){const t=i/steps;pts.push([Math.max(0,R*Math.pow(1-t,.85)),y0+h*t])}return pts}
-function bellPoints(rThroat,rExit,yBottom,yTop,steps=20){const pts=[];for(let i=0;i<=steps;i++){const t=i/steps,d=1-t;pts.push([rThroat+(rExit-rThroat)*Math.pow(d,.5),yBottom+(yTop-yBottom)*t])}return pts}
-let finGeometry;function getFinGeometry(){if(finGeometry)return finGeometry;const s=new THREE.Shape();s.moveTo(.4,.66);s.lineTo(1,.3);s.lineTo(1,.02);s.lineTo(.4,0);s.closePath();finGeometry=new THREE.ExtrudeGeometry(s,{depth:.05,bevelEnabled:true,bevelSize:.012,bevelThickness:.012,bevelSegments:2});finGeometry.translate(0,0,-.025);return finGeometry}
+const mat=(color,metalness=.45,roughness=.38)=>new THREE.MeshStandardMaterial({color,metalness,roughness});
+const cyl=(r1,r2,h,y,m,seg=32)=>{const x=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,seg),m);x.position.y=y;return x};
+const ring=(r,t,y,m)=>{const x=new THREE.Mesh(new THREE.TorusGeometry(r,t,10,40),m);x.rotation.x=Math.PI/2;x.position.y=y;return x};
+const lathe=(p,m,seg=40)=>new THREE.Mesh(new THREE.LatheGeometry(p.map(([r,y])=>new THREE.Vector2(r,y)),seg),m);
+function noseProfile(r=.48,h=.95){const p=[];for(let i=0;i<=24;i++){const t=i/24;p.push([r*Math.pow(1-t,.85),.38+h*t])}return p}
+function bellProfile(){const p=[];for(let i=0;i<=18;i++){const t=i/18;p.push([.12+.12*Math.pow(1-t,.5),-.28+.38*t])}return p}
+let finGeo;
+function fins(){if(finGeo)return finGeo;const s=new THREE.Shape();s.moveTo(.38,.68);s.lineTo(1,.34);s.lineTo(1,.02);s.lineTo(.38,0);s.closePath();finGeo=new THREE.ExtrudeGeometry(s,{depth:.06,bevelEnabled:true,bevelSize:.01,bevelThickness:.01,bevelSegments:2});finGeo.translate(0,0,-.03);return finGeo}
 
-// Public so the builder can display the real 3D part while it is being dragged.
-export function makePart(partData){
- const group=new THREE.Group(),R=.48;
- if(partData.type==='nose'){const hull=hullMaterial(partData.color,5,2);group.add(lathe([[0,0],[R,0],[R,.4]],hull));group.add(lathe(ogivePoints(R,.4,.95),hull));group.add(ring(R+.005,.022,.4,material(0x3a4651,.7,.35)));group.add(ring(R+.004,.018,.08,material(0xc87839,.5,.4)));group.add(cyl(.012,.02,.24,1.45,material(0x2b3138,.85,.3),12));const tip=new THREE.Mesh(new THREE.SphereGeometry(.026,12,10),material(0xd9dde2,.9,.2));tip.position.y=1.58;group.add(tip)}
- else if(partData.type==='capsule'){const hull=hullMaterial(partData.color,4,1.5,.3,.4);const prof=[[0,0],[.47,0],[.48,.03],[.48,.3],[.46,.31]];for(let i=0;i<=12;i++){const t=i/12;prof.push([.45-.25*t-.02*Math.sin(t*Math.PI),.34+.46*t])}prof.push([.2,.82],[.14,.86],[.14,.9],[0,.9]);group.add(lathe(prof,hull));group.add(ring(.485,.022,.02,material(0x8e9aa5,.7,.3)));group.add(ring(.49,.02,.32,material(0x2f3a45,.6,.4)));group.add(ring(.2,.018,.83,material(0x8e9aa5,.75,.3));const slope=Math.atan(.25/.46);for(const ang of [0,.95,-.95]){const pivot=new THREE.Group();pivot.rotation.y=ang;const w=new THREE.Group();w.position.set(0,.56,.325);w.rotation.x=-slope;const rim=new THREE.Mesh(new THREE.TorusGeometry(.105,.022,10,32),material(0x65798d,.75,.28));const glass=new THREE.Mesh(new THREE.SphereGeometry(.088,20,16),new THREE.MeshStandardMaterial({color:0x59bfff,metalness:.55,roughness:.12,emissive:0x0a2b46}));glass.scale.z=.25;glass.position.z=.005;w.add(rim,glass);pivot.add(w);group.add(pivot)}}
- else if(partData.type==='tank'){const hull=hullMaterial(partData.color,4,3),Rt=.52,dome=.12,top=1.45,prof=[];for(let i=0;i<=8;i++){const a=i/8*Math.PI/2;prof.push([Rt*Math.sin(a),dome-dome*Math.cos(a)])}for(let i=1;i<=8;i++){const a=i/8*Math.PI/2;prof.push([Rt*Math.cos(a),top-dome+dome*Math.sin(a)])}group.add(lathe(prof,hull));const dark=material(0x303943,.7,.4);for(const y of [.18,.72,1.26])group.add(ring(Rt+.01,.025,y,y===.72?material(0x384653,.7):dark));group.add(cyl(Rt+.015,Rt+.015,.08,.06,dark,48));group.add(cyl(Rt+.015,Rt+.015,.08,1.39,dark,48));const lblMat=new THREE.MeshStandardMaterial({map:labelTexture('LF-900'),transparent:true,roughness:.5,metalness:.1,polygonOffset:true,polygonOffsetFactor:-2,depthWrite:false});const len=1.9,label=new THREE.Mesh(new THREE.CylinderGeometry(Rt+.004,Rt+.004,.55,40,1,true,-len/2,len),lblMat);label.position.y=.95;group.add(label)}
- else if(partData.type==='engine'){const metal=material(partData.color,.75,.35),dark=material(0x30363d,.8,.35);group.add(cyl(.5,.5,.08,.66,dark,40));group.add(lathe([[.5,.62],[.4,.55],[.3,.3]],material(partData.color,.7,.4)));group.add(ring(.32,.03,.5,material(0x9a744c,.7,.34)));group.add(cyl(.2,.2,.26,.45,metal,28));group.add(cyl(.37,.37,.1,.55,material(0xb48a3a,.8,.3),36));for(const side of [-1,1]){const pump=cyl(.09,.09,.26,.46,metal,18);pump.position.x=side*.33;pump.position.z=.1;group.add(pump)}group.add(lathe(bellPoints(.12,.24,-.3,.1,14),dark,28));group.add(ring(.24,.02,-.3,material(0x9a744c,.7,.34),28));for(const y of [.35,.7])group.add(ring(.304,.016,y,dark,36));group.add(ring(.306,.028,.86,material(0xc87839,.55),36));group.add(ring(.306,.028,.2,material(0xc87839,.55),36))}
- else if(partData.type==='booster'){const hull=hullMaterial(partData.color,4,3),r=.3;group.add(lathe([[0,.08],[r,.08],[r,1]],hull,36));group.add(lathe(ogivePoints(r,1,.42,20),hull,36));group.add(lathe(bellPoints(.12,.24,-.3,.1,14),material(0x30363d,.85,.35),28));group.add(ring(.24,.02,-.3,material(0x9a744c,.7,.34),28));for(const y of [.35,.7])group.add(ring(r+.004,.016,y,material(0x333c45,.7,.4),36));group.add(ring(r+.006,.028,.86,material(0xc87839,.55),36))}
- else if(partData.type==='separator'){const orange=material(0xe4a34e,.7,.4);group.add(cyl(.56,.56,.18,.09,orange,48));group.add(ring(.565,.02,.09,material(0x70451f,.7),48));for(const y of [.01,.17])group.add(ring(.56,.018,y,material(0x20242a,.8,.4),48))}
- else if(partData.type==='fins'){const finMat=material(partData.color,.6,.42);for(let i=0;i<4;i++){const pivot=new THREE.Group();pivot.rotation.y=-i*Math.PI/2;pivot.add(new THREE.Mesh(getFinGeometry(),finMat));group.add(pivot)}}
- group.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});return group;
+/** Real procedural 3D model used by both the rocket and the drag-preview ghost. */
+export function makePart(p){
+  const g=new THREE.Group();
+  if(p.type==='capsule'){
+    g.add(lathe([[0,0],[.46,0],[.49,.08],[.49,.32],[.43,.38],[.28,.75],[.2,.86],[0,.9]],mat(p.color,.35,.4)));
+    g.add(ring(.49,.022,.03,mat(0x81909d,.7,.3)));g.add(ring(.49,.018,.32,mat(0x27333e,.7,.35)));
+    for(const a of [0,Math.PI/2,Math.PI,Math.PI*1.5]){const w=new THREE.Mesh(new THREE.CircleGeometry(.075,20),mat(0x54bfff,.5,.12));w.position.set(Math.sin(a)*.43,.56,Math.cos(a)*.43);w.rotation.y=a;g.add(w)}
+  } else if(p.type==='nose'){
+    const m=mat(p.color,.4,.4);g.add(lathe([[0,0],[.48,0],[.48,.38]],m));g.add(lathe(noseProfile(),m));g.add(ring(.485,.022,.38,mat(0x35424e,.7,.3)));g.add(cyl(.012,.02,.24,1.48,mat(0x252c33,.8,.3),12));
+  } else if(p.type==='tank'){
+    const m=mat(p.color,.4,.48),r=.52;g.add(lathe([[0,0],[.45,.03],[r,.12],[r,1.32],[.45,1.42],[0,1.45]],m));
+    for(const y of [.18,.72,1.28])g.add(ring(r+.01,.024,y,mat(0x35424e,.7,.4)));
+    const band=mat(0x202a34,.6,.45);g.add(cyl(r+.015,r+.015,.07,.05,band));g.add(cyl(r+.015,r+.015,.07,1.4,band));
+    const label=mat(0x26333f,.25,.55);label.color.setHex(0x53616d);const plate=new THREE.Mesh(new THREE.BoxGeometry(.72,.24,.012),label);plate.position.set(0,.9,.515);g.add(plate);
+  } else if(p.type==='engine'){
+    g.add(cyl(.5,.5,.08,.66,mat(0x303943,.8,.35)));g.add(lathe([[.5,.62],[.4,.55],[.3,.3]],mat(p.color,.7,.4)));g.add(ring(.32,.03,.5,mat(0xb4883d,.8,.3)));g.add(cyl(.2,.2,.25,.44,mat(0x8e9aa5,.75,.32)));g.add(lathe(bellProfile(),mat(0x30363d,.85,.35)));g.add(ring(.24,.02,-.28,mat(0xb4883d,.7,.34)));
+    for(const s of [-1,1]){const pump=cyl(.075,.075,.22,.46,mat(0x77828c,.8,.3),16);pump.position.x=s*.32;g.add(pump)}
+  } else if(p.type==='booster'){
+    const r=.3,m=mat(p.color,.4,.45);g.add(lathe([[0,.08],[r,.08],[r,1]],m,36));g.add(lathe(noseProfile(r,.42).map(([x,y])=>[x,y+.62]),m,36));g.add(lathe(bellProfile(),mat(0x30363d,.85,.35),28));g.add(ring(.24,.02,-.28,mat(0xb4883d,.7,.34)));for(const y of [.35,.7])g.add(ring(r+.006,.016,y,mat(0x333c45,.7,.4),36));
+  } else if(p.type==='separator'){
+    g.add(cyl(.56,.56,.18,.09,mat(0xe0a24b,.7,.4),48));g.add(ring(.565,.02,.09,mat(0x70451f,.7,.4)));g.add(ring(.56,.018,.02,mat(0x20242a,.8,.4)));g.add(ring(.56,.018,.16,mat(0x20242a,.8,.4)));
+  } else if(p.type==='fins'){
+    for(let i=0;i<4;i++){const q=new THREE.Group();q.rotation.y=-i*Math.PI/2;q.add(new THREE.Mesh(fins(),mat(p.color,.6,.42)));g.add(q)}
+  }
+  g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});return g;
 }
 
-export function arrangeRocket(group,parts,scale=1){while(group.children.length)group.remove(group.children[0]);const order={engine:0,separator:1,tank:2,capsule:3,nose:4};const core=parts.map((id,index)=>({id,index})).filter(item=>!['booster','fins'].includes(PARTS[item.id].type)).sort((a,b)=>(order[PARTS[a.id].type]??2)-(order[PARTS[b.id].type]??2)||a.index-b.index);let stackHeight=0;core.forEach(({id})=>{const part=makePart(PARTS[id]);part.scale.setScalar(scale);part.updateWorldMatrix(true,true);const bounds=new THREE.Box3().setFromObject(part),height=bounds.max.y-bounds.min.y;part.position.y=stackHeight-bounds.min.y;group.add(part);stackHeight+=height});const boosters=parts.filter(id=>PARTS[id].type==='booster');boosters.forEach((id,index)=>{const part=makePart(PARTS[id]);part.scale.setScalar(scale);part.updateWorldMatrix(true,true);const bounds=new THREE.Box3().setFromObject(part),angle=index/Math.max(1,boosters.length)*Math.PI*2+Math.PI/4,radius=.9*scale;part.rotation.y=-angle;part.position.set(Math.cos(angle)*radius,-bounds.min.y,Math.sin(angle)*radius);group.add(part)});parts.filter(id=>PARTS[id].type==='fins').forEach(()=>{const part=makePart(PARTS.fins);part.scale.setScalar(scale);part.position.y=.2*scale;group.add(part)});return stackHeight}
+export function arrangeRocket(group,parts,scale=1){
+  while(group.children.length)group.remove(group.children[0]);
+  const order={engine:0,separator:1,tank:2,capsule:3,nose:4};
+  const core=parts.map((id,index)=>({id,index})).filter(x=>!['booster','fins'].includes(PARTS[x.id].type)).sort((a,b)=>(order[PARTS[a.id].type]??2)-(order[PARTS[b.id].type]??2)||a.index-b.index);
+  let height=0;
+  for(const {id} of core){const q=makePart(PARTS[id]);q.scale.setScalar(scale);q.updateWorldMatrix(true,true);const b=new THREE.Box3().setFromObject(q);const h=b.max.y-b.min.y;q.position.y=height-b.min.y;group.add(q);height+=h}
+  const boosters=parts.filter(id=>PARTS[id].type==='booster');
+  boosters.forEach((id,i)=>{const q=makePart(PARTS[id]);q.scale.setScalar(scale);q.updateWorldMatrix(true,true);const b=new THREE.Box3().setFromObject(q);const a=i/Math.max(1,boosters.length)*Math.PI*2+Math.PI/4;q.rotation.y=-a;q.position.set(Math.cos(a)*.9*scale,-b.min.y,Math.sin(a)*.9*scale);group.add(q)});
+  parts.filter(id=>PARTS[id].type==='fins').forEach(()=>{const q=makePart(PARTS.fins);q.scale.setScalar(scale);q.position.y=.2*scale;group.add(q)});
+  return height;
+}
